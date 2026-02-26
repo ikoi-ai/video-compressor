@@ -1,0 +1,21 @@
+{
+    "name": "IKOI Media Shrink",
+    "short_name": "Media Shrink",
+    "description": "安全・高速・無料でメディアサイズを最適化するローカル圧縮ツール",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFFDF7",
+    "theme_color": "#E64A19",
+    "icons": [
+        {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
