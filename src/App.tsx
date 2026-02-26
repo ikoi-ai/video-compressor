@@ -13,7 +13,14 @@ function App() {
   // Settings State
   const [resizeMode, setResizeMode] = useState<ResizeMode>('mb');
   const [targetSizeMB, setTargetSizeMB] = useState<number>(10);
-  const [targetSizePx, setTargetSizePx] = useState<number>(1080);
+
+  // Resolution State
+  const [targetWidthPx, setTargetWidthPx] = useState<number>(1920);
+  const [targetHeightPx, setTargetHeightPx] = useState<number>(1080);
+  const [originalWidth, setOriginalWidth] = useState<number>(0);
+  const [originalHeight, setOriginalHeight] = useState<number>(0);
+  const [lockAspectRatio, setLockAspectRatio] = useState<boolean>(true);
+
   const [outputFormat, setOutputFormat] = useState<string>('mp4');
 
   // Process State
@@ -67,21 +74,50 @@ function App() {
     setIsImage(fileIsImage);
 
     if (fileIsImage) {
-      // 画像が選ばれた場合、デフォルトMB指定は意味が薄いのでpx推奨にしつつ、出力も画像に
       setOutputFormat('jpeg');
       setOriginalDuration(0);
-      setStatus(`${file.name} を選択しました (画像)`);
+
+      const img = new Image();
+      img.onload = () => {
+        setOriginalWidth(img.width);
+        setOriginalHeight(img.height);
+        setTargetWidthPx(img.width);
+        setTargetHeightPx(img.height);
+        URL.revokeObjectURL(img.src);
+        setStatus(`${file.name} を選択しました (${img.width}x${img.height})`);
+      };
+      img.src = URL.createObjectURL(file);
+
     } else {
-      // 動画の場合
       setOutputFormat('mp4');
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.onloadedmetadata = () => {
-        window.URL.revokeObjectURL(video.src);
         setOriginalDuration(video.duration);
-        setStatus(`${file.name} を選択しました (${Math.round(video.duration)}秒)`);
+        setOriginalWidth(video.videoWidth);
+        setOriginalHeight(video.videoHeight);
+        setTargetWidthPx(video.videoWidth);
+        setTargetHeightPx(video.videoHeight);
+        URL.revokeObjectURL(video.src);
+        setStatus(`${file.name} を選択しました (${Math.round(video.duration)}秒, ${video.videoWidth}x${video.videoHeight})`);
       };
       video.src = URL.createObjectURL(file);
+    }
+  };
+
+  const handleWidthChange = (val: number) => {
+    setTargetWidthPx(val);
+    if (lockAspectRatio && originalWidth > 0) {
+      const ratio = originalHeight / originalWidth;
+      setTargetHeightPx(Math.round(val * ratio));
+    }
+  };
+
+  const handleHeightChange = (val: number) => {
+    setTargetHeightPx(val);
+    if (lockAspectRatio && originalHeight > 0) {
+      const ratio = originalWidth / originalHeight;
+      setTargetWidthPx(Math.round(val * ratio));
     }
   };
 
@@ -134,11 +170,11 @@ function App() {
 
       // --- 1. 解像度（px）指定の処理 ---
       if (resizeMode === 'px') {
-        setStatus(`長辺 ${targetSizePx}px にリサイズ＆変換中さ〜...`);
-        // アスペクト比を維持しつつ長辺をtargetSizePxに合わせるスケールフィルター
-        // 画像/動画共通で使える汎用的なscale指定: scale='min(TARGET,iw)':'min(TARGET,ih)':force_original_aspect_ratio=increase
-        // シンプルに scale=TARGET:-1 となるようにするが、奇数エラーを防ぐため -2 指定が安全な場合もある
-        ffmpegArgs.push('-vf', `scale='min(${targetSizePx},iw)':-2`);
+        setStatus(`${targetWidthPx}x${targetHeightPx} にリサイズ＆変換中さ〜...`);
+        // H.264などは縦横が偶数である必要があるため、安全に偶数丸めを行う
+        const safeW = Math.floor(targetWidthPx / 2) * 2;
+        const safeH = Math.floor(targetHeightPx / 2) * 2;
+        ffmpegArgs.push('-vf', `scale=${safeW}:${safeH}`);
       }
       // --- 2. 容量（MB）指定の処理 ---
       else {
@@ -150,7 +186,6 @@ function App() {
           ffmpegArgs.push('-b:v', `${finalBitrate}k`, '-maxrate', `${finalBitrate * 1.5}k`, '-bufsize', `${finalBitrate * 2}k`);
         } else if (!isOutputVideo) {
           // 画像の圧縮率調整 (JPEG, WebP)
-          // 完全なMB指定は難しいため、qscaleで荒く圧縮
           ffmpegArgs.push('-q:v', '10');
         }
       }
@@ -208,7 +243,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1>Media Shrink AI 🌺</h1>
+      <h1>IKOI Media Shrink 🌺</h1>
       <p className="subtitle">ちゅら海のように鮮やかに、動画・写真をスッキリ変換🌊</p>
 
       {!loaded ? (
@@ -266,14 +301,35 @@ function App() {
                 </div>
               ) : (
                 <div className="input-group">
-                  <label>長辺の長さ指定 (px)</label>
-                  <input
-                    type="number"
-                    value={targetSizePx}
-                    onChange={(e) => setTargetSizePx(Number(e.target.value))}
-                    min="100"
-                    step="100"
-                  />
+                  <div className="dimensions-row">
+                    <div className="dimension-box">
+                      <label>幅 (Width) px</label>
+                      <input
+                        type="number"
+                        value={targetWidthPx}
+                        onChange={(e) => handleWidthChange(Number(e.target.value))}
+                        min="10"
+                      />
+                    </div>
+
+                    <button
+                      className={`lock-btn ${lockAspectRatio ? 'locked' : ''}`}
+                      onClick={() => setLockAspectRatio(!lockAspectRatio)}
+                      title={lockAspectRatio ? '縦横比の固定を解除' : '縦横比を固定'}
+                    >
+                      {lockAspectRatio ? '🔗' : '🔓'}
+                    </button>
+
+                    <div className="dimension-box">
+                      <label>高さ (Height) px</label>
+                      <input
+                        type="number"
+                        value={targetHeightPx}
+                        onChange={(e) => handleHeightChange(Number(e.target.value))}
+                        min="10"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -296,6 +352,7 @@ function App() {
                     <option value="jpeg">JPEG (写真用・標準)</option>
                     <option value="png">PNG (劣化なし・高画質)</option>
                     <option value="webp">WebP (Web向け次世代・軽量)</option>
+                    <option value="avif">AVIF (次世代・高圧縮)</option>
                   </optgroup>
                 </select>
               </div>
