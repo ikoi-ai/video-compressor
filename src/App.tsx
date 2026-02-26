@@ -139,7 +139,7 @@ function App() {
       const url = URL.createObjectURL(new Blob([data as any], { type: mimeType }));
 
       setDownloadUrl(url);
-      setStatus('圧縮が完了しました！');
+      setStatus('🌺 処理が完了しました！');
     } catch (error) {
       console.error(error);
       setStatus('エラーが発生しました。');
@@ -150,8 +150,8 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1>Video Shrink AI</h1>
-      <p className="subtitle">画質を維持したまま、目標サイズに自動圧縮</p>
+      <h1>Video Shrink AI 🌺</h1>
+      <p className="subtitle">ちゅら海のように鮮やかに、動画サイズをスッキリ圧縮🌊</p>
 
       {!loaded ? (
         <div className="status-text">{status}</div>
@@ -161,8 +161,8 @@ function App() {
             className={`dropzone ${!videoFile ? 'active' : ''}`}
             onClick={() => fileInputRef.current?.click()}
           >
-            <span className="dropzone-icon">🎬</span>
-            <p>{videoFile ? videoFile.name : '動画ファイルをドラッグ＆ドロップ、またはクリックして選択'}</p>
+            <img src="/hermit-crab.png" alt="ヤドカリ" className="dropzone-icon" />
+            <p>{videoFile ? videoFile.name : '動画をドラッグ＆ドロップ、またはクリックして選択'}</p>
             <input
               type="file"
               ref={fileInputRef}
@@ -203,7 +203,7 @@ function App() {
                 onClick={compressVideo}
                 disabled={compressing}
               >
-                {compressing ? '処理中...' : '圧縮を開始する'}
+                {compressing ? '圧縮中さ〜...' : '圧縮をスタート！'}
               </button>
             </div>
           )}
@@ -221,11 +221,11 @@ function App() {
 
           {downloadUrl && (
             <div className="download-section">
-              <span className="success-icon">✨</span>
-              <h3>準備ができました！</h3>
-              <p style={{ margin: '1rem 0', color: 'var(--text-muted)' }}>指定サイズ以下に調整されました。</p>
+              <span className="success-icon">✨ 🌺 ✨</span>
+              <h3>準備ができたさ〜！</h3>
+              <p style={{ margin: '1rem 0', color: 'var(--text-muted)' }}>指定のサイズに合わせて小さくなったよ。</p>
               <a href={downloadUrl} download={`compressed_${videoFile?.name}`} className="btn">
-                📩 動画を保存する
+                📩 動画を保存する🌺
               </a>
             </div>
           )}

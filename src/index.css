@@ -1,13 +1,29 @@
 :root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --accent: #10b981;
+  /* Okinawa Bingata Theme Colors */
+  --primary: #E64A19;
+  /* 紅型によく見られる鮮やかな朱色 */
+  --primary-hover: #D84315;
+  /* 少し濃い朱色 */
+  --secondary: #009688;
+  /* エメラルドグリーンの海の色 */
+  --text-main: #1a237e;
+  /* 深みのある琉球藍（紺色） */
+  --text-muted: #5c6bc0;
+  /* 少し明るい藍色 */
+  --accent: #FBC02D;
+  /* 太陽の黄色 */
   --error: #ef4444;
+
+  /* Bright & Warm Background Pattern */
+  --bg-gradient:
+    radial-gradient(circle at 100% 0%, #FFFDF7 0%, rgba(255, 253, 247, 0.8) 50%, rgba(255, 255, 255, 0) 100%),
+    linear-gradient(135deg, #FFFDF7 0%, #FFF3E0 50%, #E0F2F1 100%);
+
+  /* Light Frost Glassmorphism */
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --dropzone-bg: rgba(255, 255, 255, 0.4);
 }
 
 * {
@@ -19,6 +35,8 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-gradient);
+  /* 伝統的な波や花を連想させる背景パターンの追加 (Base64 SVG) */
+  background-image: var(--bg-gradient), url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e64a19' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
@@ -35,12 +53,13 @@ body {
 
 .app-container {
   background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 3rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  /* 明るい影と内側のハイライト */
   animation: fadeIn 0.8s ease-out;
 }
 
@@ -61,8 +80,10 @@ h1 {
   font-weight: 800;
   text-align: center;
   margin-bottom: 0.5rem;
-  background: linear-gradient(to right, #818cf8, #c084fc);
+  /* 琉球藍と朱色のグラデーション */
+  background: linear-gradient(to right, #1a237e, #E64A19);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -71,31 +92,36 @@ h1 {
   color: var(--text-muted);
   margin-bottom: 3rem;
   font-size: 1.1rem;
+  font-weight: 500;
 }
 
 /* Dropzone Styles */
 .dropzone {
-  border: 2px dashed var(--glass-border);
-  border-radius: 16px;
+  border: 3px dashed rgba(26, 35, 126, 0.2);
+  border-radius: 20px;
   padding: 4rem 2rem;
   text-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--dropzone-bg);
   margin-bottom: 2rem;
+  font-weight: 600;
 }
 
 .dropzone:hover,
 .dropzone.active {
   border-color: var(--primary);
-  background: rgba(99, 102, 241, 0.05);
-  transform: scale(1.01);
+  background: rgba(230, 74, 25, 0.05);
+  /* 朱色の薄い背景 */
+  transform: scale(1.02);
 }
 
 .dropzone-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  width: 120px;
+  height: auto;
+  margin: 0 auto 1rem auto;
   display: block;
+  mix-blend-mode: multiply;
 }
 
 /* Controls */
@@ -112,44 +138,47 @@ h1 {
 }
 
 .input-group label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
-input[type="number"] {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
+input[type="number"],
+.format-select {
+  background: var(--input-bg);
+  border: 2px solid rgba(26, 35, 126, 0.1);
+  border-radius: 12px;
   padding: 0.8rem 1rem;
-  color: white;
+  color: var(--text-main);
   font-size: 1rem;
+  font-weight: 500;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) inset;
 }
 
 input[type="number"]:focus,
 .format-select:focus {
   border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(230, 74, 25, 0.1);
 }
 
 .format-select {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: 0.8rem 1rem;
-  color: white;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.2s;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  /* カスタムの矢印を追加 */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a237e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
 }
 
 .format-select option {
-  background: #1e293b;
-  color: white;
+  background: white;
+  color: var(--text-main);
 }
 
 /* Button */
@@ -158,76 +187,66 @@ input[type="number"]:focus,
   color: white;
   border: none;
   border-radius: 12px;
-  padding: 1rem 2rem;
+  padding: 1.2rem 2rem;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(230, 74, 25, 0.2), 0 2px 4px -1px rgba(230, 74, 25, 0.1);
 }
 
 .btn:hover:not(:disabled) {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 15px -3px rgba(230, 74, 25, 0.3), 0 4px 6px -2px rgba(230, 74, 25, 0.1);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  background: #bdbdbd;
+  box-shadow: none;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Progress */
 .progress-container {
   margin-top: 2rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(26, 35, 126, 0.1);
   border-radius: 999px;
-  height: 8px;
+  height: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) inset;
 }
 
 .progress-bar {
-  background: var(--primary);
+  background: linear-gradient(90deg, var(--secondary), var(--accent));
   height: 100%;
   transition: width 0.3s ease;
+  border-radius: 999px;
 }
 
 .status-text {
   margin-top: 0.75rem;
   text-align: center;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
-/* File Info */
-.file-info {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.file-name {
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+/* Download Section */
 .download-section {
   text-align: center;
   margin-top: 2rem;
-  padding: 2rem;
-  background: rgba(16, 185, 129, 0.1);
-  border-radius: 16px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  animation: slideUp 0.5s ease-out;
+  padding: 2.5rem 2rem;
+  background: rgba(0, 150, 136, 0.05);
+  /* エメラルドグリーンの薄い背景 */
+  border-radius: 20px;
+  border: 2px dashed rgba(0, 150, 136, 0.3);
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUp {
@@ -243,8 +262,24 @@ input[type="number"]:focus,
 }
 
 .success-icon {
-  color: var(--accent);
-  font-size: 2.5rem;
+  font-size: 3rem;
   margin-bottom: 1rem;
   display: block;
+}
+
+.download-section h3 {
+  color: var(--secondary);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.download-section .btn {
+  background: var(--secondary);
+  box-shadow: 0 4px 6px -1px rgba(0, 150, 136, 0.2);
+  margin-top: 1.5rem;
+}
+
+.download-section .btn:hover {
+  background: #00796B;
+  box-shadow: 0 10px 15px -3px rgba(0, 150, 136, 0.3);
 }
