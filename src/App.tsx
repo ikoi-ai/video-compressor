@@ -31,6 +31,7 @@ function App() {
   const [originalDuration, setOriginalDuration] = useState<number>(0);
   const [isImage, setIsImage] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,6 +71,12 @@ function App() {
     setDownloadUrl(null);
     setProgress(0);
 
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    const newPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrl(newPreviewUrl);
+
     const fileIsImage = file.type.startsWith('image/');
     setIsImage(fileIsImage);
 
@@ -83,10 +90,9 @@ function App() {
         setOriginalHeight(img.height);
         setTargetWidthPx(img.width);
         setTargetHeightPx(img.height);
-        URL.revokeObjectURL(img.src);
         setStatus(`${file.name} を選択しました (${img.width}x${img.height})`);
       };
-      img.src = URL.createObjectURL(file);
+      img.src = newPreviewUrl;
 
     } else {
       setOutputFormat('mp4');
@@ -98,10 +104,9 @@ function App() {
         setOriginalHeight(video.videoHeight);
         setTargetWidthPx(video.videoWidth);
         setTargetHeightPx(video.videoHeight);
-        URL.revokeObjectURL(video.src);
         setStatus(`${file.name} を選択しました (${Math.round(video.duration)}秒, ${video.videoWidth}x${video.videoHeight})`);
       };
-      video.src = URL.createObjectURL(file);
+      video.src = newPreviewUrl;
     }
   };
 
@@ -257,7 +262,15 @@ function App() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <img src="/hermit-crab.png" alt="ヤドカリ" className="dropzone-icon" />
+            {previewUrl ? (
+              isImage ? (
+                <img src={previewUrl} alt="プレビュー" className="preview-media" />
+              ) : (
+                <video src={previewUrl} className="preview-media" autoPlay loop muted playsInline />
+              )
+            ) : (
+              <img src="/hermit-crab.png" alt="ヤドカリ" className="dropzone-icon" />
+            )}
             <p>{mediaFile ? mediaFile.name : '動画や写真をドラッグ＆ドロップ、またはクリック🌺'}</p>
             <input
               type="file"

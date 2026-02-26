@@ -125,6 +125,15 @@ h1 {
   mix-blend-mode: multiply;
 }
 
+.preview-media {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 /* Controls */
 .controls {
   display: grid;
@@ -355,4 +364,53 @@ input[type="number"]:focus,
 .download-section .btn:hover {
   background: #00796B;
   box-shadow: 0 10px 15px -3px rgba(0, 150, 136, 0.3);
+}
+
+/* -------------------------------------
+ *  Responsive Design (Mobile View)
+ * ------------------------------------- */
+@media (max-width: 600px) {
+  #root {
+    padding: 1rem;
+  }
+
+  .app-container {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+
+  .dropzone {
+    padding: 2rem 1rem;
+  }
+
+  .mode-toggle {
+    flex-direction: column;
+  }
+
+  .mode-btn {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(26, 35, 126, 0.1);
+  }
+
+  .mode-btn:last-child {
+    border-bottom: none;
+  }
+
+  .dimensions-row {
+    flex-wrap: wrap;
+    /* スマホで縮みすぎを防ぐため折り返しを許可 (または縮小を許容) */
+  }
+
+  .lock-btn {
+    margin-top: 1.5rem;
+  }
 }
