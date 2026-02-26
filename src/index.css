@@ -109,7 +109,8 @@ h1 {
 }
 
 .dropzone:hover,
-.dropzone.active {
+.dropzone.active,
+.dropzone.dragging {
   border-color: var(--primary);
   background: rgba(230, 74, 25, 0.05);
   /* 朱色の薄い背景 */
@@ -179,6 +180,32 @@ input[type="number"]:focus,
 .format-select option {
   background: white;
   color: var(--text-main);
+}
+
+/* Mode Toggle */
+.mode-toggle {
+  display: flex;
+  background: var(--input-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(26, 35, 126, 0.1);
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.8rem;
+  background: transparent;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn.active {
+  background: var(--primary);
+  color: white;
 }
 
 /* Button */
