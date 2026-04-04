@@ -7,6 +7,7 @@ type ResizeMode = 'mb' | 'px';
 
 function App() {
   const [ffmpeg, setFfmpeg] = useState<FFmpeg | null>(null);
+  const loadingRef = useRef(false);
   const [loaded, setLoaded] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
 
@@ -36,10 +37,13 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadFFmpeg();
-  }, []);
+    if (!loadingRef.current && !loaded) {
+      loadFFmpeg();
+    }
+  }, [loaded]);
 
   const loadFFmpeg = async () => {
+    loadingRef.current = true;
     const ffmpegInstance = new FFmpeg();
     setStatus('FFmpegを読み込み中...');
 
@@ -63,6 +67,7 @@ function App() {
     } catch (err) {
       console.error('FFmpeg Load Error:', err);
       setStatus('FFmpegの読み込みに失敗しました。');
+      loadingRef.current = false;
     }
   };
 
@@ -77,7 +82,8 @@ function App() {
     const newPreviewUrl = URL.createObjectURL(file);
     setPreviewUrl(newPreviewUrl);
 
-    const fileIsImage = file.type.startsWith('image/');
+    const isImgExt = /\.(jpg|jpeg|png|webp|gif|heic|avif)$/i.test(file.name);
+    const fileIsImage = file.type.startsWith('image/') || (!file.type.startsWith('video/') && isImgExt);
     setIsImage(fileIsImage);
 
     if (fileIsImage) {
@@ -92,6 +98,13 @@ function App() {
         setTargetHeightPx(img.height);
         setStatus(`${file.name} を選択しました (${img.width}x${img.height})`);
       };
+      img.onerror = () => {
+        setOriginalWidth(1920);
+        setOriginalHeight(1080);
+        setTargetWidthPx(1920);
+        setTargetHeightPx(1080);
+        setStatus(`${file.name} を選択しました (プレビュー画像の自動取得非対応)`);
+      };
       img.src = newPreviewUrl;
 
     } else {
@@ -105,6 +118,14 @@ function App() {
         setTargetWidthPx(video.videoWidth);
         setTargetHeightPx(video.videoHeight);
         setStatus(`${file.name} を選択しました (${Math.round(video.duration)}秒, ${video.videoWidth}x${video.videoHeight})`);
+      };
+      video.onerror = () => {
+        setOriginalDuration(0);
+        setOriginalWidth(1920);
+        setOriginalHeight(1080);
+        setTargetWidthPx(1920);
+        setTargetHeightPx(1080);
+        setStatus(`${file.name} を選択しました (プレビュー非対応形式：標準値を使用します)`);
       };
       video.src = newPreviewUrl;
     }
@@ -148,10 +169,15 @@ function App() {
     setIsDragging(false);
 
     const file = e.dataTransfer.files?.[0];
-    if (file && (file.type.startsWith('video/') || file.type.startsWith('image/'))) {
+    if (!file) return;
+
+    const isMedia = file.type.startsWith('video/') || file.type.startsWith('image/') || 
+      /\.(mp4|mov|avi|mkv|webm|ts|flv|wmv|m4v|jpg|jpeg|png|webp|gif|heic|avif)$/i.test(file.name);
+
+    if (isMedia) {
       processSelectedFile(file);
-    } else if (file) {
-      setStatus('動画か画像ファイルを選択してください。');
+    } else {
+      setStatus(`未対応のファイルです。(${file.name})`);
     }
   };
 
@@ -164,8 +190,9 @@ function App() {
     setStatus('処理を開始しています...');
 
     try {
-      const inputName = mediaFile.name;
-      const outputName = `converted_${inputName.split('.')[0]}.${outputFormat}`;
+      const originalExt = mediaFile.name.split('.').pop() || 'mp4';
+      const inputName = `input_${Date.now()}.${originalExt}`;
+      const outputName = `output_${Date.now()}.${outputFormat}`;
 
       await ffmpeg.writeFile(inputName, await fetchFile(mediaFile));
 
@@ -177,8 +204,8 @@ function App() {
       if (resizeMode === 'px') {
         setStatus(`${targetWidthPx}x${targetHeightPx} にリサイズ＆変換中さ〜...`);
         // H.264などは縦横が偶数である必要があるため、安全に偶数丸めを行う
-        const safeW = Math.floor(targetWidthPx / 2) * 2;
-        const safeH = Math.floor(targetHeightPx / 2) * 2;
+        const safeW = Math.max(2, Math.floor(targetWidthPx / 2) * 2);
+        const safeH = Math.max(2, Math.floor(targetHeightPx / 2) * 2);
         ffmpegArgs.push('-vf', `scale=${safeW}:${safeH}`);
       }
       // --- 2. 容量（MB）指定の処理 ---
@@ -236,6 +263,14 @@ function App() {
 
       const url = URL.createObjectURL(new Blob([data as any], { type: mimeType }));
 
+      // Clean up the virtual file system
+      try {
+        await ffmpeg.deleteFile(inputName);
+        await ffmpeg.deleteFile(outputName);
+      } catch (e) {
+        console.warn('Failed to delete temporary files:', e);
+      }
+
       setDownloadUrl(url);
       setStatus('🌺 処理が完了しました！');
     } catch (error) {
@@ -255,6 +290,11 @@ function App() {
         <div className="status-text">{status}</div>
       ) : (
         <>
+          {status && status !== '準備完了' && !compressing && progress === 0 && (
+            <div className="status-text" style={{ marginBottom: '1rem', fontWeight: 'bold', color: status.includes('未対応') ? '#d9534f' : 'inherit' }}>
+              {status}
+            </div>
+          )}
           <div
             className={`dropzone ${!mediaFile ? 'active' : ''} ${isDragging ? 'dragging' : ''}`}
             onClick={() => fileInputRef.current?.click()}
@@ -396,7 +436,7 @@ function App() {
               <span className="success-icon">✨ 🌺 ✨</span>
               <h3>準備ができたさ〜！</h3>
               <p style={{ margin: '1rem 0', color: 'var(--text-muted)' }}>指定の設定に合わせて変換が完了したよ。</p>
-              <a href={downloadUrl} download={`converted_${mediaFile?.name.split('.')[0]}.${outputFormat}`} className="btn">
+              <a href={downloadUrl} download={`converted_${mediaFile?.name.split('.').slice(0, -1).join('.') || 'media'}.${outputFormat}`} className="btn">
                 📩 ファイルを保存する🌺
               </a>
             </div>
